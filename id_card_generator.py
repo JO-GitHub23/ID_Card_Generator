@@ -1,38 +1,40 @@
 from PIL import Image, ImageDraw, ImageFont
+import os
 import barcode
 from barcode.writer import ImageWriter
-import os
 
 def generate_id_card(company, name, phone, blood, address, id_no, photo_path, bg_path):
-    # Load the background image
-    bg = Image.open(bg_path).convert("RGB")
-    bg = bg.resize((600, 900))  # portrait size
+    # Paths setup
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    font_path = os.path.join(base_dir, "fonts", "times.ttf")
+    output_folder = os.path.join(base_dir, "static")
+
+    # Open background image
+    bg = Image.open(bg_path).convert("RGBA")
+    bg = bg.resize((600, 900))  # standard card size
 
     draw = ImageDraw.Draw(bg)
 
-    # ---- FONT SETUP ----
+    # Load fonts
     try:
-        title_font = ImageFont.truetype("arialbd.ttf", 40)
-        label_font = ImageFont.truetype("arial.ttf", 26)
-        value_font = ImageFont.truetype("arial.ttf", 28)
+        title_font = ImageFont.truetype(font_path, 45)
+        label_font = ImageFont.truetype(font_path, 22)
+        value_font = ImageFont.truetype(font_path, 26)
     except OSError:
-        title_font = ImageFont.load_default()
-        label_font = ImageFont.load_default()
-        value_font = ImageFont.load_default()
+        # fallback if font not found
+        title_font = label_font = value_font = ImageFont.load_default()
 
-    # ---- TITLE ----
-    draw.text((150, 30), f"{company} ID CARD", fill="black", font=title_font)
+    # Add company title
+    draw.text((180, 50), f"{company} ID CARD", fill="black", font=title_font)
 
-    # ---- PHOTO ----
-    if photo_path and os.path.exists(photo_path):
-        photo = Image.open(photo_path).convert("RGB")
-        photo = photo.resize((180, 180))
-        bg.paste(photo, (210, 100))  # center top
+    # Add photo
+    photo = Image.open(photo_path).resize((180, 180))
+    bg.paste(photo, (210, 130))
 
-    # ---- DETAILS ----
-    y_start = 320
-    line_gap = 60
-    details = [
+    # Info layout start
+    y = 350
+    spacing = 80
+    fields = [
         ("Name", name),
         ("Phone", phone),
         ("Blood Group", blood),
@@ -40,23 +42,24 @@ def generate_id_card(company, name, phone, blood, address, id_no, photo_path, bg
         ("ID No", id_no),
     ]
 
-    for i, (label, value) in enumerate(details):
-        y = y_start + i * line_gap
+    for label, value in fields:
         draw.text((70, y), f"{label}:", fill="black", font=label_font)
-        draw.text((250, y), str(value), fill="black", font=value_font)
+        draw.text((250, y), f"{value}", fill="black", font=value_font)
+        y += spacing
 
-    # ---- BARCODE ----
-    barcode_path = f"static/id_cards/{id_no}_barcode.png"
-    EAN = barcode.get_barcode_class("code128")
-    ean = EAN(str(id_no), writer=ImageWriter())
-    ean.save(barcode_path.replace(".png", ""))
+    # Generate barcode for ID
+    barcode_class = barcode.get_barcode_class('code128')
+    my_barcode = barcode_class(str(id_no), writer=ImageWriter())
+    barcode_path = os.path.join(output_folder, f"{id_no}_barcode.png")
+    my_barcode.save(barcode_path)
 
-    barcode_img = Image.open(barcode_path)
-    barcode_img = barcode_img.resize((350, 100))
-    bg.paste(barcode_img, (125, 750))  # bottom center
+    # Add barcode to card
+    barcode_img = Image.open(f"{barcode_path}")
+    barcode_img = barcode_img.resize((300, 100))
+    bg.paste(barcode_img, (150, 750))
 
-    # ---- SAVE FINAL CARD ----
-    output_file = f"static/id_cards/{name}_id_card.png"
+    # Save ID card
+    output_file = os.path.join(output_folder, f"{name}_id_card.png")
     bg.save(output_file)
 
     return output_file
