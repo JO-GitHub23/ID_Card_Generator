@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ID Card Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f0f4f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 450px;
+    }
+    h2 { text-align: center; margin-bottom: 20px; color: #00796b; }
+    label { font-weight: 600; display: block; margin-top: 10px; }
+    input, select {
+      width: 100%; padding: 8px; margin-top: 5px;
+      border-radius: 6px; border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 20px; padding: 10px; width: 100%;
+      border: none; background: #00796b; color: white;
+      font-weight: 600; border-radius: 6px; cursor: pointer;
+    }
+    .download { text-align: center; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Company ID Card Generator</h2>
+    <form action="/generate" method="post" enctype="multipart/form-data">
+      <label>Company Name</label>
+      <input type="text" name="company" required>
+
+      <label>Name</label>
+      <input type="text" name="name" required>
+
+      <label>Phone</label>
+      <input type="text" name="phone" required>
+
+      <label>Blood Group</label>
+      <input type="text" name="blood">
+
+      <label>Address</label>
+      <input type="text" name="address">
+
+      <label>ID Number</label>
+      <input type="text" name="id_no" required>
+
+      <label>Upload Photo</label>
+      <input type="file" name="photo" accept="image/*" required>
+
+      <label>Choose Background</label>
+      <select name="bg_choice" id="bg_choice" onchange="toggleCustomBg()">
+        <option value="bg1.png">Sea Green Default</option>
+        <option value="bg2.png">Red Sharp</option>
+        <option value="bg3.png">Green Curve</option>
+        <option value="custom">Upload Custom</option>
+      </select>
+
+      <div id="custom_bg_field" style="display:none;">
+        <label>Upload Custom Background</label>
+        <input type="file" name="custom_bg" accept="image/*">
+      </div>
+
+      <button type="submit">Generate ID Card</button>
+    </form>
+
+    {% if generated %}
+      <div class="download">
+        <p>✅ ID Card generated successfully!</p>
+        <a href="/download/{{ filename }}" download>Download ID Card</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <script>
+    function toggleCustomBg() {
+      const bgChoice = document.getElementById('bg_choice');
+      const field = document.getElementById('custom_bg_field');
+      field.style.display = (bgChoice.value === 'custom') ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>
