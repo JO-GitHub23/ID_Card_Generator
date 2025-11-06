@@ -5,6 +5,8 @@
   <title>ID Card Generator — Joel</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/png">
+
   <style>
     :root{
       --accent:#0d6efd;
@@ -110,7 +112,7 @@
         <div class="field">
           <label class="small">Or upload your own background (optional)</label>
           <input type="file" name="custom_bg" accept="image/*">
-          <p class="muted">Recommended size: portrait (700×1000). Uploaded custom BG is used for this card only.</p>
+          <p class="muted">Recommended size: portrait (700×1000). Uploaded custom Background is used for this card only.</p>
         </div>
 
         <button class="cta" type="submit">Generate & Preview</button>
