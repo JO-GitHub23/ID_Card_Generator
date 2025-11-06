@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, send_file
 import os
 from id_card_generator import generate_id_card
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # Ensure required folders exist
 os.makedirs(os.path.join("static", "generated"), exist_ok=True)
