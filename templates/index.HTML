@@ -1,54 +1,157 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>ID Card Generator</title>
+  <title>ID Card Generator — Joel</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; background: #f2f2f2; text-align: center; }
-    form { background: white; padding: 20px; margin: 30px auto; width: 380px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
-    input, textarea { width: 90%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
-    button { background: #007bff; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
-    button:hover { background: #0056b3; }
-    .bg-preview { display:flex; flex-wrap:wrap; justify-content:center; margin:12px 0; }
-    .bg-preview img { width:80px; height:100px; margin:6px; border-radius:6px; border:2px solid #ccc; cursor:pointer; object-fit:cover; transition: .15s; }
-    .bg-preview img.selected { border:3px solid #007bff; transform: scale(1.03); }
+    :root{
+      --accent:#0d6efd;
+      --card-bg:#fff;
+      --muted:#6b7280;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg,#f5f8ff 0%, #f2f6fb 100%);
+      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px;
+    }
+    .container{
+      display:flex; gap:28px; align-items:flex-start; max-width:1100px; width:100%;
+    }
+    .form-card{
+      background:var(--card-bg); border-radius:14px; padding:22px; box-shadow:0 8px 30px rgba(13,40,85,0.08);
+      width:420px; transition:transform .18s ease;
+    }
+    .form-card h2{margin:0 0 12px 0; font-size:20px; color:#0b3a66}
+    .field{margin:10px 0}
+    input[type=text], textarea, select{
+      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6eef8; font-size:14px;
+      background:#fbfdff;
+    }
+    textarea{min-height:80px; resize:vertical}
+    label.small{font-size:13px; color:var(--muted); margin-bottom:6px; display:block}
+    .bg-preview{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+    .bg-preview img{width:84px; height:110px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid #e6eef8; transition:transform .15s, border-color .15s}
+    .bg-preview img.selected{border-color:var(--accent); transform:translateY(-4px); box-shadow:0 8px 18px rgba(13,40,85,0.08)}
+    .muted{color:var(--muted); font-size:13px}
+    button.cta{
+      margin-top:12px; width:100%; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px;
+      font-weight:600; cursor:pointer; box-shadow:0 8px 18px rgba(13,40,85,0.12); transition:transform .12s;
+    }
+    button.cta:hover{transform:translateY(-3px)}
+    /* preview column */
+    .preview-panel{
+      width:520px; display:flex; flex-direction:column; gap:10px; align-items:center;
+    }
+    .preview-box{
+      width:420px; height:600px; border-radius:12px; background:#fff; box-shadow:0 14px 40px rgba(11,36,66,0.08); display:flex;
+      align-items:center; justify-content:center; padding:14px; position:relative; overflow:hidden;
+    }
+    .preview-box img{max-width:100%; max-height:100%; border-radius:6px; opacity:0; transform:translateY(8px) scale(.99); transition:all .35s ease}
+    .preview-box img.visible{opacity:1; transform:translateY(0) scale(1)}
+    .download-row{display:flex; gap:8px; width:100%; justify-content:center}
+    a.download-btn{padding:10px 18px; border-radius:8px; background:#0b6df0; color:white; text-decoration:none; font-weight:600}
+    .note{font-size:13px; color:var(--muted); text-align:center}
+    @media(max-width:960px){ .container{flex-direction:column; align-items:center} .preview-panel{width:100%} .form-card{width:100%; max-width:520px} }
   </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-card">
+      <h2>Company ID Card Generator</h2>
+      <form action="{{ url_for('generate') }}" method="post" enctype="multipart/form-data">
+        <div class="field">
+          <label class="small">Company Name</label>
+          <input type="text" name="company" placeholder="e.g. ACME Corp" required>
+        </div>
+
+        <div class="field">
+          <label class="small">Full Name</label>
+          <input type="text" name="name" placeholder="Employee full name" required>
+        </div>
+
+        <div class="field">
+          <label class="small">Phone</label>
+          <input type="text" name="phone" placeholder="Phone number">
+        </div>
+
+        <div class="field">
+          <label class="small">Blood Group</label>
+          <input type="text" name="blood" placeholder="e.g. O+">
+        </div>
+
+        <div class="field">
+          <label class="small">Address</label>
+          <textarea name="address" placeholder="Postal address"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="small">ID Number</label>
+          <input type="text" name="id_no" placeholder="Unique ID" required>
+        </div>
+
+        <div class="field">
+          <label class="small">Upload Photo</label>
+          <input type="file" name="photo" accept="image/*" required>
+        </div>
+
+        <div class="field">
+          <label class="small">Choose a preset background</label>
+          <div class="bg-preview">
+            {% for bg in bg_files %}
+              <img src="{{ url_for('static', filename='backgrounds/' + bg) }}" data-name="{{ bg }}" onclick="selectBg('{{ bg }}', this)" title="{{ bg }}">
+            {% endfor %}
+          </div>
+          <input type="hidden" id="bg_name" name="bg_name" value="{{ bg_files[0] if bg_files else '' }}">
+        </div>
+
+        <div class="field">
+          <label class="small">Or upload your own background (optional)</label>
+          <input type="file" name="custom_bg" accept="image/*">
+          <p class="muted">Recommended size: portrait (700×1000). Uploaded custom BG is used for this card only.</p>
+        </div>
+
+        <button class="cta" type="submit">Generate & Preview</button>
+      </form>
+    </div>
+
+    <div class="preview-panel">
+      <div class="preview-box" aria-live="polite">
+        {% if preview_file %}
+          <img id="previewImage" src="{{ url_for('static', filename=preview_file) }}" class="visible" alt="ID preview">
+        {% else %}
+          <div class="note">Your generated ID preview will appear here after you click <strong>Generate & Preview</strong>.</div>
+        {% endif %}
+      </div>
+
+      {% if preview_file %}
+        <div class="download-row">
+          <a class="download-btn" href="{{ url_for('static', filename=preview_file) }}" download="{{ download_name }}">Download ID Card</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
   <script>
-    function selectBg(name, el) {
+    // select first preset bg visually on load
+    document.addEventListener('DOMContentLoaded', function(){
+      const imgs = document.querySelectorAll('.bg-preview img');
+      if(imgs.length>0){
+        imgs[0].classList.add('selected');
+        document.getElementById('bg_name').value = imgs[0].dataset.name;
+      }
+    });
+
+    function selectBg(name, el){
       document.getElementById('bg_name').value = name;
       document.querySelectorAll('.bg-preview img').forEach(i => i.classList.remove('selected'));
       el.classList.add('selected');
+      // clear custom_bg input if user picks a preset
+      const customInput = document.querySelector('input[name="custom_bg"]');
+      if(customInput) customInput.value = '';
     }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const first = document.querySelector('.bg-preview img');
-      if (first) {
-        first.classList.add('selected');
-        document.getElementById('bg_name').value = first.getAttribute('data-name');
-      }
-    });
   </script>
-</head>
-<body>
-  <h2>Company ID Card Generator</h2>
-  <form action="/generate" method="POST" enctype="multipart/form-data">
-    <input type="text" name="company" placeholder="Company Name" required>
-    <input type="text" name="name" placeholder="Employee Name" required>
-    <input type="text" name="phone" placeholder="Phone Number" required>
-    <input type="text" name="blood" placeholder="Blood Group" required>
-    <textarea name="address" placeholder="Address" rows="3" required></textarea>
-    <input type="text" name="id_no" placeholder="ID Number" required>
-    <input type="file" name="photo" accept="image/*" required>
-
-    <h4>Select Background</h4>
-    <div class="bg-preview">
-      {% for bg in bg_files %}
-        <img src="{{ url_for('static', filename='backgrounds/' + bg) }}" data-name="{{ bg }}" onclick="selectBg('{{ bg }}', this)">
-      {% endfor %}
-    </div>
-    <input type="hidden" id="bg_name" name="bg_name" value="{{ bg_files[0] if bg_files else '' }}">
-
-    <button type="submit">Generate ID Card</button>
-  </form>
 </body>
 </html>
